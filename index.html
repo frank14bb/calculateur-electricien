@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculateur Électricien</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root{
+    --bg:#eef0ec;
+    --surface:#ffffff;
+    --surface-2:#e6e9e3;
+    --text:#1a1d1a;
+    --text-dim:#5b6058;
+    --line:#d3d7cd;
+    --accent:#a86f00;
+    --accent-ink:#ffffff;
+    --accent-soft:#f2e2bd;
+    --good-bg:#dcf0e4; --good-fg:#1f6b3f; --good-line:#a9d9bc;
+    --warn-bg:#fbebc9; --warn-fg:#7a5400; --warn-line:#e8c877;
+    --bad-bg:#fbdedb; --bad-fg:#9c2b21; --bad-line:#eeb0a9;
+    --screen-bg:#12140f;
+    --screen-fg:#f5b400;
+    --screen-fg-dim:#8a8065;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14171c;
+      --surface:#1c2129;
+      --surface-2:#242b35;
+      --text:#e8ebef;
+      --text-dim:#9aa4b2;
+      --line:#323a46;
+      --accent:#f5b400;
+      --accent-ink:#1a1400;
+      --accent-soft:#3a3115;
+      --good-bg:#173226; --good-fg:#7fe0a8; --good-line:#2c5c40;
+      --warn-bg:#3a2f0d; --warn-fg:#f5c344; --warn-line:#6b5417;
+      --bad-bg:#3a1a17; --bad-fg:#f29b8e; --bad-line:#6b2e26;
+      --screen-bg:#0b0d09;
+      --screen-fg:#f5b400;
+      --screen-fg-dim:#6b6248;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14171c;
+    --surface:#1c2129;
+    --surface-2:#242b35;
+    --text:#e8ebef;
+    --text-dim:#9aa4b2;
+    --line:#323a46;
+    --accent:#f5b400;
+    --accent-ink:#1a1400;
+    --accent-soft:#3a3115;
+    --good-bg:#173226; --good-fg:#7fe0a8; --good-line:#2c5c40;
+    --warn-bg:#3a2f0d; --warn-fg:#f5c344; --warn-line:#6b5417;
+    --bad-bg:#3a1a17; --bad-fg:#f29b8e; --bad-line:#6b2e26;
+    --screen-bg:#0b0d09;
+    --screen-fg:#f5b400;
+    --screen-fg-dim:#6b6248;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:"IBM Plex Sans", system-ui, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:640px;
+    margin:0 auto;
+    padding:20px 16px 48px;
+  }
+  header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:18px;
+  }
+  .bolt{
+    flex:none;
+    width:38px;height:38px;
+  }
+  h1{
+    font-family:"Oswald", system-ui, sans-serif;
+    font-weight:700;
+    font-size:1.5rem;
+    letter-spacing:0.02em;
+    text-transform:uppercase;
+    margin:0;
+    line-height:1.1;
+  }
+  .subtitle{
+    margin:2px 0 0;
+    color:var(--text-dim);
+    font-size:0.85rem;
+  }
+
+  nav.tabs{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr 1fr;
+    gap:6px;
+    margin-bottom:18px;
+  }
+  nav.tabs button{
+    font-family:"Oswald", system-ui, sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.02em;
+    font-size:0.64rem;
+    font-weight:600;
+    padding:10px 2px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:var(--surface);
+    color:var(--text-dim);
+    cursor:pointer;
+    transition:background .15s, color .15s, border-color .15s;
+  }
+  nav.tabs button[aria-selected="true"]{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:var(--accent-ink);
+  }
+  nav.tabs button:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  section.panel{
+    display:none;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:20px;
+  }
+  section.panel.active{ display:block; }
+
+  h2{
+    font-family:"Oswald", system-ui, sans-serif;
+    font-size:1.05rem;
+    text-transform:uppercase;
+    letter-spacing:0.02em;
+    margin:0 0 14px;
+  }
+
+  .field{ margin-bottom:14px; }
+  .field label{
+    display:block;
+    font-size:0.78rem;
+    color:var(--text-dim);
+    margin-bottom:5px;
+  }
+  .row2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  select, input[type="number"]{
+    width:100%;
+    font-family:"IBM Plex Mono", monospace;
+    font-size:1rem;
+    padding:11px 10px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:var(--surface-2);
+    color:var(--text);
+  }
+  select:focus, input:focus{ outline:2px solid var(--accent); outline-offset:1px; }
+
+  .segmented{
+    display:flex;
+    border:1px solid var(--line);
+    border-radius:8px;
+    overflow:hidden;
+  }
+  .segmented button{
+    flex:1;
+    padding:10px 6px;
+    border:none;
+    background:var(--surface-2);
+    color:var(--text-dim);
+    font-family:"IBM Plex Sans", sans-serif;
+    font-size:0.85rem;
+    font-weight:500;
+    cursor:pointer;
+    border-left:1px solid var(--line);
+  }
+  .segmented button:first-child{ border-left:none; }
+  .segmented button[aria-pressed="true"]{
+    background:var(--accent);
+    color:var(--accent-ink);
+    font-weight:600;
+  }
+
+  #cd-rows{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .cd-row{
+    display:grid;
+    grid-template-columns:1fr 84px 36px;
+    gap:8px;
+    align-items:center;
+  }
+  .cd-row select, .cd-row input{ margin:0; }
+  .cd-row-remove{
+    width:36px;
+    height:38px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:var(--surface-2);
+    color:var(--text-dim);
+    font-size:1.1rem;
+    line-height:1;
+    cursor:pointer;
+  }
+  .cd-row-remove:hover{ background:var(--bad-bg); color:var(--bad-fg); border-color:var(--bad-line); }
+  .add-row-btn{
+    margin-top:8px;
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:1px dashed var(--line);
+    background:transparent;
+    color:var(--text-dim);
+    font-family:"IBM Plex Sans", sans-serif;
+    font-size:0.85rem;
+    font-weight:500;
+    cursor:pointer;
+  }
+  .add-row-btn:hover{ border-color:var(--accent); color:var(--accent); }
+
+  .checkrow{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    padding:9px 0;
+    border-top:1px solid var(--line);
+  }
+  .checkrow:first-of-type{ border-top:none; }
+  .checkrow input{ width:18px; height:18px; accent-color:var(--accent); }
+  .checkrow label{ font-size:0.88rem; color:var(--text); }
+
+  .screen{
+    margin-top:18px;
+    background:var(--screen-bg);
+    border-radius:10px;
+    padding:16px 18px;
+  }
+  .screen .readout-label{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.68rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--screen-fg-dim);
+    margin-bottom:4px;
+  }
+  .screen .readout-value{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:2rem;
+    font-weight:600;
+    color:var(--screen-fg);
+    font-variant-numeric:tabular-nums;
+    line-height:1.15;
+  }
+  .screen .readout-sub{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.85rem;
+    color:var(--screen-fg-dim);
+    margin-top:2px;
+  }
+
+  .status{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    margin-top:12px;
+    padding:6px 12px;
+    border-radius:999px;
+    font-size:0.8rem;
+    font-weight:600;
+    border:1px solid;
+  }
+  .status.good{ background:var(--good-bg); color:var(--good-fg); border-color:var(--good-line); }
+  .status.warn{ background:var(--warn-bg); color:var(--warn-fg); border-color:var(--warn-line); }
+  .status.bad{ background:var(--bad-bg); color:var(--bad-fg); border-color:var(--bad-line); }
+
+  .note{
+    margin-top:14px;
+    font-size:0.78rem;
+    color:var(--text-dim);
+    line-height:1.5;
+  }
+
+  table.amp-table{
+    width:100%;
+    border-collapse:collapse;
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.82rem;
+  }
+  table.amp-table th, table.amp-table td{
+    padding:8px 6px;
+    text-align:right;
+    border-bottom:1px solid var(--line);
+    font-variant-numeric:tabular-nums;
+  }
+  table.amp-table th:first-child, table.amp-table td:first-child{ text-align:left; }
+  table.amp-table thead th{
+    font-family:"IBM Plex Sans", sans-serif;
+    font-weight:600;
+    color:var(--text-dim);
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+  }
+  table.amp-table tbody tr.hit{ background:var(--accent-soft); }
+  .table-scroll{ overflow-x:auto; margin-top:16px; border-radius:8px; }
+
+  footer{
+    margin-top:22px;
+    padding-top:14px;
+    border-top:1px solid var(--line);
+    font-size:0.74rem;
+    color:var(--text-dim);
+    line-height:1.5;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <svg class="bolt" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M13 2 L4 14 H11 L10 22 L20 9 H13 L13 2Z" fill="var(--accent)"/>
+    </svg>
+    <div>
+      <h1>Calculateur Électricien</h1>
+      <p class="subtitle">Chute de tension · boîte · fil · tuyau</p>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-panel="vd">Chute de<br>tension</button>
+    <button role="tab" aria-selected="false" data-panel="box">Boîte<br>électrique</button>
+    <button role="tab" aria-selected="false" data-panel="amp">Calibre<br>de fil</button>
+    <button role="tab" aria-selected="false" data-panel="conduit">Remplissage<br>de tuyau</button>
+  </nav>
+
+  <!-- ===================== CHUTE DE TENSION ===================== -->
+  <section class="panel active" id="vd">
+    <h2>Chute de tension</h2>
+
+    <div class="field">
+      <label for="vd-material">Conducteur</label>
+      <div class="segmented" id="vd-material">
+        <button aria-pressed="true" data-val="cu">Cuivre</button>
+        <button aria-pressed="false" data-val="al">Aluminium</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="vd-phase">Type de circuit</label>
+      <div class="segmented" id="vd-phase">
+        <button aria-pressed="true" data-val="mono">Monophasé</button>
+        <button aria-pressed="false" data-val="tri">Triphasé</button>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label for="vd-gauge">Calibre (AWG)</label>
+        <select id="vd-gauge"></select>
+      </div>
+      <div class="field">
+        <label for="vd-amps">Courant (A)</label>
+        <input type="number" id="vd-amps" value="20" min="0" step="0.5">
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label for="vd-length">Longueur (aller seulement)</label>
+        <input type="number" id="vd-length" value="30" min="0" step="0.5">
+      </div>
+      <div class="field">
+        <label for="vd-unit">Unité</label>
+        <select id="vd-unit">
+          <option value="m">mètres</option>
+          <option value="ft">pieds</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="vd-voltage">Tension nominale</label>
+      <select id="vd-voltage">
+        <option value="120">120 V</option>
+        <option value="208">208 V</option>
+        <option value="240">240 V</option>
+        <option value="347">347 V</option>
+        <option value="600">600 V</option>
+      </select>
+    </div>
+
+    <div class="screen">
+      <div class="readout-label">Chute de tension</div>
+      <div class="readout-value" id="vd-out-volts">0.0 V</div>
+      <div class="readout-sub" id="vd-out-pct">0.0 %</div>
+    </div>
+    <div id="vd-status"></div>
+
+    <p class="note">Repère habituel : ≤3 % sur un circuit de dérivation, ≤5 % au total (alimentation + dérivation) — voir la note de l'Annexe B à la règle 8-102 du Code. Résistances basées sur les valeurs standard des tables de résistance c.c. des conducteurs.</p>
+  </section>
+
+  <!-- ===================== REMPLISSAGE DE BOÎTE ===================== -->
+  <section class="panel" id="box">
+    <h2>Remplissage de boîte</h2>
+
+    <div class="row2">
+      <div class="field">
+        <label for="box-gauge">Calibre des conducteurs</label>
+        <select id="box-gauge"></select>
+      </div>
+      <div class="field">
+        <label for="box-volume">Volume de la boîte (po³)</label>
+        <input type="number" id="box-volume" value="18" min="0" step="0.5">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="box-conductors">Nombre de conducteurs (chauds + neutres, sans les mises à la terre)</label>
+      <input type="number" id="box-conductors" value="4" min="0" step="1">
+    </div>
+
+    <div class="checkrow">
+      <input type="checkbox" id="box-ground" checked>
+      <label for="box-ground">Contient un ou des fils de mise à la terre (compte pour 1, peu importe le nombre)</label>
+    </div>
+
+    <div class="field" style="margin-top:8px;">
+      <label for="box-devices">Nombre d'appareils (interrupteurs / prises — chacun compte double)</label>
+      <input type="number" id="box-devices" value="1" min="0" step="1">
+    </div>
+
+    <div class="checkrow">
+      <input type="checkbox" id="box-clamp">
+      <label for="box-clamp">Serre-câble interne (compte pour 1, peu importe le nombre)</label>
+    </div>
+    <div class="checkrow">
+      <input type="checkbox" id="box-stud">
+      <label for="box-stud">Support de luminaire interne (compte pour 1)</label>
+    </div>
+
+    <div class="screen">
+      <div class="readout-label">Volume requis</div>
+      <div class="readout-value" id="box-out-required">0.00 po³</div>
+      <div class="readout-sub" id="box-out-available">Boîte : 0.00 po³ disponible</div>
+    </div>
+    <div id="box-status"></div>
+
+    <p class="note">Méthode simplifiée nord-américaine par allocation de volume selon le calibre (14 AWG = 2.00 po³, 12 AWG = 2.25 po³, etc.). Le Code canadien (règle 12-3034) a ses propres tableaux — confirme toujours avec le volume gravé sur la boîte et le Chapitre V avant de fermer.</p>
+  </section>
+
+  <!-- ===================== CALIBRE DE FIL ===================== -->
+  <section class="panel" id="amp">
+    <h2>Calibre de fil</h2>
+
+    <div class="field">
+      <label for="amp-material">Conducteur</label>
+      <div class="segmented" id="amp-material">
+        <button aria-pressed="true" data-val="cu">Cuivre</button>
+        <button aria-pressed="false" data-val="al">Aluminium</button>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label for="amp-temp">Colonne d'isolant</label>
+        <select id="amp-temp">
+          <option value="60">60 °C</option>
+          <option value="75" selected>75 °C</option>
+          <option value="90">90 °C</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="amp-target">Charge à alimenter (A)</label>
+        <input type="number" id="amp-target" value="20" min="0" step="1">
+      </div>
+    </div>
+
+    <div class="screen">
+      <div class="readout-label">Calibre minimum suggéré</div>
+      <div class="readout-value" id="amp-out-gauge">— AWG</div>
+      <div class="readout-sub" id="amp-out-cap">ampacité de base, avant facteurs de correction</div>
+    </div>
+
+    <div class="table-scroll">
+      <table class="amp-table" id="amp-table">
+        <thead>
+          <tr><th>AWG</th><th>60 °C</th><th>75 °C</th><th>90 °C</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <p class="note">Ampacités de base (avant regroupement, température ambiante, etc.). Rappel : la règle 14-104 limite la protection de surintensité à 15 A pour du 14 AWG et 20 A pour du 12 AWG (cuivre) en usage général, peu importe la colonne de température. Toujours confirmer avec le Chapitre V et le livre bleu Hydro-Québec.</p>
+  </section>
+
+  <!-- ===================== REMPLISSAGE DE TUYAU (CONDUIT) ===================== -->
+  <section class="panel" id="conduit">
+    <h2>Remplissage de tuyau</h2>
+
+    <p class="note" style="margin-top:0;">Conducteurs type TWN75/T90 — aires approximatives. Le remplissage exact dépend de l'isolant réel : confirme avec les tableaux 8, 9 et 10 du Chapitre V avant de tirer les fils.</p>
+
+    <div class="field">
+      <label for="cd-type">Type de conduit</label>
+      <div class="segmented" id="cd-type">
+        <button aria-pressed="true" data-val="emt">EMT</button>
+        <button aria-pressed="false" data-val="pvc">PVC (40)</button>
+        <button aria-pressed="false" data-val="rmc">Rigide métal.</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="cd-conduit">Diamètre du conduit</label>
+      <select id="cd-conduit">
+        <option value="1/2">1/2 po</option>
+        <option value="3/4">3/4 po</option>
+        <option value="1" selected>1 po</option>
+        <option value="1-1/4">1-1/4 po</option>
+        <option value="1-1/2">1-1/2 po</option>
+        <option value="2">2 po</option>
+        <option value="2-1/2">2-1/2 po</option>
+        <option value="3">3 po</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Conducteurs dans le tuyau</label>
+      <div id="cd-rows"></div>
+      <button type="button" id="cd-add" class="add-row-btn">+ Ajouter un calibre</button>
+    </div>
+
+    <div class="screen">
+      <div class="readout-label">Remplissage</div>
+      <div class="readout-value" id="cd-out-pct">0.0 %</div>
+      <div class="readout-sub" id="cd-out-detail">max. 0 % pour 0 conducteur(s)</div>
+    </div>
+    <div id="cd-status"></div>
+
+    <div class="note" id="cd-suggest" style="margin-top:14px;"></div>
+
+    <p class="note">Limites de remplissage (Tableau 8/9, Chapitre V) : 53 % pour 1 conducteur, 31 % pour 2, 40 % pour 3 ou plus (calculé sur le nombre total de conducteurs, tous calibres confondus).</p>
+  </section>
+
+  <footer>
+    Outil de référence rapide pour usage personnel — ne remplace pas le Code de construction (Chapitre V, Électricité) ni le livre bleu d'Hydro-Québec. Fonctionne hors ligne une fois la page ouverte.
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // Resistance (ohms/km), DC, based on standard conductor resistance tables
+  var R_CU = {14:10.30,12:6.50,10:4.07,8:2.55,6:1.611,4:1.011,3:0.804,2:0.636,1:0.505,"1/0":0.400,"2/0":0.317,"3/0":0.251,"4/0":0.1995};
+  var R_AL = {12:10.66,10:6.693,8:4.199,6:2.651,4:1.667,3:1.322,2:1.047,1:0.830,"1/0":0.659,"2/0":0.522,"3/0":0.413,"4/0":0.328};
+
+  var BOX_VOL = {14:2.00,12:2.25,10:2.50,8:3.00,6:5.00};
+
+  var AMP_CU = {
+    14:{60:15,75:20,90:25}, 12:{60:20,75:25,90:30}, 10:{60:30,75:35,90:40},
+    8:{60:40,75:50,90:55}, 6:{60:55,75:65,90:75}, 4:{60:70,75:85,90:95},
+    3:{60:85,75:100,90:110}, 2:{60:95,75:115,90:130}, 1:{60:110,75:130,90:150},
+    "1/0":{60:125,75:150,90:170}, "2/0":{60:145,75:175,90:195},
+    "3/0":{60:165,75:200,90:225}, "4/0":{60:195,75:230,90:260}
+  };
+  var AMP_AL = {
+    12:{60:15,75:20,90:25}, 10:{60:25,75:30,90:35}, 8:{60:30,75:40,90:45},
+    6:{60:40,75:50,90:55}, 4:{60:55,75:65,90:75}, 3:{60:65,75:75,90:85},
+    2:{60:75,75:90,90:100}, 1:{60:85,75:100,90:115},
+    "1/0":{60:100,75:120,90:135}, "2/0":{60:115,75:135,90:150},
+    "3/0":{60:130,75:155,90:175}, "4/0":{60:150,75:180,90:205}
+  };
+  var GAUGE_ORDER = ["14","12","10","8","6","4","3","2","1","1/0","2/0","3/0","4/0"];
+
+  // Approx conductor cross-section (in²), insulation type TWN75/T90 style
+  var COND_AREA_IN2 = {14:0.0097,12:0.0133,10:0.0211,8:0.0366,6:0.0507,4:0.0824,3:0.0973,2:0.1158,1:0.1562,"1/0":0.1855,"2/0":0.2223,"3/0":0.2679,"4/0":0.3237};
+
+  // Internal cross-section by conduit type (in²)
+  var CONDUIT_ORDER = ["1/2","3/4","1","1-1/4","1-1/2","2","2-1/2","3"];
+  var CONDUIT_AREA_IN2 = {
+    emt: {"1/2":0.304,"3/4":0.533,"1":0.864,"1-1/4":1.496,"1-1/2":2.036,"2":3.356,"2-1/2":5.858,"3":8.846},
+    pvc: {"1/2":0.285,"3/4":0.508,"1":0.832,"1-1/4":1.453,"1-1/2":1.986,"2":3.291,"2-1/2":4.695,"3":7.268},
+    rmc: {"1/2":0.314,"3/4":0.549,"1":0.887,"1-1/4":1.526,"1-1/2":2.071,"2":3.408,"2-1/2":4.866,"3":7.499}
+  };
+
+  function maxFillPct(count){
+    if (count <= 1) return 53;
+    if (count === 2) return 31;
+    return 40;
+  }
+
+  function fillGaugeSelect(sel, table){
+    sel.innerHTML = "";
+    GAUGE_ORDER.forEach(function(g){
+      if (table[g] === undefined) return;
+      var opt = document.createElement("option");
+      opt.value = g;
+      opt.textContent = g + " AWG";
+      sel.appendChild(opt);
+    });
+  }
+
+  // ---------- Tabs ----------
+  var tabButtons = document.querySelectorAll('nav.tabs button');
+  tabButtons.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      tabButtons.forEach(function(b){ b.setAttribute('aria-selected','false'); });
+      btn.setAttribute('aria-selected','true');
+      document.querySelectorAll('section.panel').forEach(function(p){ p.classList.remove('active'); });
+      document.getElementById(btn.dataset.panel).classList.add('active');
+    });
+  });
+
+  function segmented(id, onChange){
+    var group = document.getElementById(id);
+    var buttons = group.querySelectorAll('button');
+    buttons.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        buttons.forEach(function(b){ b.setAttribute('aria-pressed','false'); });
+        btn.setAttribute('aria-pressed','true');
+        onChange(btn.dataset.val);
+      });
+    });
+    return function(){
+      var active = group.querySelector('[aria-pressed="true"]');
+      return active ? active.dataset.val : buttons[0].dataset.val;
+    };
+  }
+
+  // ================= CHUTE DE TENSION =================
+  var vdMaterial = segmented('vd-material', computeVD);
+  var vdPhase = segmented('vd-phase', computeVD);
+  var vdGauge = document.getElementById('vd-gauge');
+  var vdAmps = document.getElementById('vd-amps');
+  var vdLength = document.getElementById('vd-length');
+  var vdUnit = document.getElementById('vd-unit');
+  var vdVoltage = document.getElementById('vd-voltage');
+
+  function refreshVdGauges(){
+    fillGaugeSelect(vdGauge, vdMaterial() === 'cu' ? R_CU : R_AL);
+  }
+
+  function computeVD(){
+    refreshVdGauges();
+    var table = vdMaterial() === 'cu' ? R_CU : R_AL;
+    var r = table[vdGauge.value] || table[GAUGE_ORDER.find(function(g){ return table[g]!==undefined; })];
+    var lengthRaw = parseFloat(vdLength.value) || 0;
+    var km = vdUnit.value === 'm' ? lengthRaw/1000 : (lengthRaw*0.3048)/1000;
+    var amps = parseFloat(vdAmps.value) || 0;
+    var factor = vdPhase() === 'mono' ? 2 : Math.sqrt(3);
+    var voltage = parseFloat(vdVoltage.value) || 120;
+
+    var drop = factor * km * r * amps;
+    var pct = voltage > 0 ? (drop/voltage)*100 : 0;
+
+    document.getElementById('vd-out-volts').textContent = drop.toFixed(1) + ' V';
+    document.getElementById('vd-out-pct').textContent = pct.toFixed(1) + ' % de ' + voltage + ' V';
+
+    var statusEl = document.getElementById('vd-status');
+    if (pct <= 3){
+      statusEl.innerHTML = '<span class="status good">Conforme — sous la limite de 3 %</span>';
+    } else if (pct <= 5){
+      statusEl.innerHTML = '<span class="status warn">Attention — entre 3 % et 5 %</span>';
+    } else {
+      statusEl.innerHTML = '<span class="status bad">Dépasse la limite recommandée de 5 %</span>';
+    }
+  }
+
+  refreshVdGauges();
+  [vdGauge, vdAmps, vdLength, vdUnit, vdVoltage].forEach(function(el){
+    el.addEventListener('input', computeVD);
+    el.addEventListener('change', computeVD);
+  });
+  computeVD();
+
+  // ================= REMPLISSAGE DE BOÎTE =================
+  var boxGauge = document.getElementById('box-gauge');
+  var boxVolume = document.getElementById('box-volume');
+  var boxConductors = document.getElementById('box-conductors');
+  var boxGround = document.getElementById('box-ground');
+  var boxDevices = document.getElementById('box-devices');
+  var boxClamp = document.getElementById('box-clamp');
+  var boxStud = document.getElementById('box-stud');
+
+  fillGaugeSelect(boxGauge, BOX_VOL);
+
+  function computeBox(){
+    var perConductor = BOX_VOL[boxGauge.value] || 2.25;
+    var count = (parseFloat(boxConductors.value) || 0)
+      + (boxGround.checked ? 1 : 0)
+      + (parseFloat(boxDevices.value) || 0) * 2
+      + (boxClamp.checked ? 1 : 0)
+      + (boxStud.checked ? 1 : 0);
+    var required = perConductor * count;
+    var available = parseFloat(boxVolume.value) || 0;
+
+    document.getElementById('box-out-required').textContent = required.toFixed(2) + ' po³';
+    document.getElementById('box-out-available').textContent = 'Boîte : ' + available.toFixed(2) + ' po³ disponible';
+
+    var statusEl = document.getElementById('box-status');
+    if (available >= required){
+      statusEl.innerHTML = '<span class="status good">Conforme — ' + (available-required).toFixed(2) + ' po³ de marge</span>';
+    } else {
+      statusEl.innerHTML = '<span class="status bad">Trop petite — manque ' + (required-available).toFixed(2) + ' po³</span>';
+    }
+  }
+
+  [boxGauge, boxVolume, boxConductors, boxGround, boxDevices, boxClamp, boxStud].forEach(function(el){
+    el.addEventListener('input', computeBox);
+    el.addEventListener('change', computeBox);
+  });
+  computeBox();
+
+  // ================= CALIBRE DE FIL =================
+  var ampMaterial = segmented('amp-material', computeAmp);
+  var ampTemp = document.getElementById('amp-temp');
+  var ampTarget = document.getElementById('amp-target');
+  var ampTableBody = document.querySelector('#amp-table tbody');
+
+  function computeAmp(){
+    var table = ampMaterial() === 'cu' ? AMP_CU : AMP_AL;
+    var temp = ampTemp.value;
+    var target = parseFloat(ampTarget.value) || 0;
+
+    var order = GAUGE_ORDER.filter(function(g){ return table[g] !== undefined; });
+    var chosen = null;
+    order.forEach(function(g){
+      if (chosen === null && table[g][temp] >= target) chosen = g;
+    });
+
+    document.getElementById('amp-out-gauge').textContent = chosen ? (chosen + ' AWG') : 'aucun (> 4/0)';
+    document.getElementById('amp-out-cap').textContent = chosen ? ('ampacité de base : ' + table[chosen][temp] + ' A à ' + temp + ' °C') : 'charge hors du tableau';
+
+    ampTableBody.innerHTML = '';
+    order.forEach(function(g){
+      var tr = document.createElement('tr');
+      if (g === chosen) tr.className = 'hit';
+      tr.innerHTML = '<td>' + g + '</td><td>' + table[g][60] + '</td><td>' + table[g][75] + '</td><td>' + table[g][90] + '</td>';
+      ampTableBody.appendChild(tr);
+    });
+  }
+
+  [ampTemp, ampTarget].forEach(function(el){
+    el.addEventListener('input', computeAmp);
+    el.addEventListener('change', computeAmp);
+  });
+  computeAmp();
+
+  // ================= REMPLISSAGE DE TUYAU =================
+  var cdType = segmented('cd-type', computeConduit);
+  var cdConduit = document.getElementById('cd-conduit');
+  var cdRows = document.getElementById('cd-rows');
+  var cdAdd = document.getElementById('cd-add');
+
+  var CONDUIT_LABEL = {emt:'EMT', pvc:'PVC (40)', rmc:'rigide métallique'};
+
+  function makeRow(gauge, count){
+    var row = document.createElement('div');
+    row.className = 'cd-row';
+
+    var sel = document.createElement('select');
+    sel.className = 'cd-row-gauge';
+    fillGaugeSelect(sel, COND_AREA_IN2);
+    sel.value = gauge;
+
+    var input = document.createElement('input');
+    input.type = 'number';
+    input.className = 'cd-row-count';
+    input.min = '1';
+    input.step = '1';
+    input.value = count;
+
+    var remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'cd-row-remove';
+    remove.setAttribute('aria-label', 'Retirer ce calibre');
+    remove.textContent = '×';
+
+    row.appendChild(sel);
+    row.appendChild(input);
+    row.appendChild(remove);
+    cdRows.appendChild(row);
+
+    sel.addEventListener('change', computeConduit);
+    input.addEventListener('input', computeConduit);
+    remove.addEventListener('click', function(){
+      if (cdRows.children.length <= 1) return;
+      row.remove();
+      computeConduit();
+    });
+  }
+
+  cdAdd.addEventListener('click', function(){
+    makeRow('12', 2);
+    computeConduit();
+  });
+
+  function computeConduit(){
+    var table = CONDUIT_AREA_IN2[cdType()];
+    var totalCount = 0;
+    var totalArea = 0;
+    cdRows.querySelectorAll('.cd-row').forEach(function(row){
+      var gauge = row.querySelector('.cd-row-gauge').value;
+      var count = Math.max(0, parseInt(row.querySelector('.cd-row-count').value, 10) || 0);
+      totalCount += count;
+      totalArea += count * (COND_AREA_IN2[gauge] || 0);
+    });
+
+    var conduitArea = table[cdConduit.value] || 0;
+    var allowedPct = maxFillPct(totalCount);
+    var actualPct = conduitArea > 0 ? (totalArea/conduitArea)*100 : 0;
+
+    document.getElementById('cd-out-pct').textContent = actualPct.toFixed(1) + ' %';
+    document.getElementById('cd-out-detail').textContent = 'max. ' + allowedPct + ' % pour ' + totalCount + ' conducteur(s) au total';
+
+    var statusEl = document.getElementById('cd-status');
+    if (totalCount === 0){
+      statusEl.innerHTML = '';
+    } else if (actualPct <= allowedPct * 0.9){
+      statusEl.innerHTML = '<span class="status good">Conforme — sous la limite de ' + allowedPct + ' %</span>';
+    } else if (actualPct <= allowedPct){
+      statusEl.innerHTML = '<span class="status warn">Proche de la limite de ' + allowedPct + ' %</span>';
+    } else {
+      statusEl.innerHTML = '<span class="status bad">Dépasse la limite de ' + allowedPct + ' %</span>';
+    }
+
+    var suggestEl = document.getElementById('cd-suggest');
+    var suggested = null;
+    CONDUIT_ORDER.forEach(function(size){
+      if (suggested === null && totalArea > 0 && (totalArea/table[size])*100 <= maxFillPct(totalCount)) suggested = size;
+    });
+    var typeLabel = CONDUIT_LABEL[cdType()];
+    suggestEl.textContent = suggested ? ('Plus petit conduit ' + typeLabel + ' conforme : ' + suggested + ' po') : 'Aucun conduit ' + typeLabel + ' de la liste ne suffit — augmente le diamètre ou réduis le nombre de conducteurs.';
+  }
+
+  cdConduit.addEventListener('change', computeConduit);
+  makeRow('12', 3);
+  makeRow('10', 2);
+  computeConduit();
+
+})();
+</script>
+</body>
+</html>
